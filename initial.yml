@@ -1,0 +1,23 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Disable SWAP
+      shell: |
+        swapoff -a
+    - name: Disable SWAP in fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'  
+    - name: create the 'ubuntu' user
+      user: name=ubuntu append=yes state=present createhome=yes shell=/bin/bash
+    - name: allow 'ubuntu' to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        line: 'ubuntu ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+    - name: Set authorized key for user ubuntu copying it from current user.
+      authorized_key:
+        user: ubuntu
+        state: present
+        key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/pipeline.pub') }}"
