@@ -1,0 +1,36 @@
+- hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    image_name: simple_flask_api
+    image_tag: v0
+
+  tasks:
+
+    - name: Log out of DockerHub
+      docker_login:
+        state: absent
+
+    - name: Log into DockerHub
+      docker_login:
+        username: "{{ docker_hub_username }}"
+        password: "{{ docker_hub_password }}"
+        email: "{{ docker_hub_email }}"
+
+    - name: Remove image
+      docker_image:
+        state: absent
+        name: "{{ docker_hub_username }}/{{ image_name }}"
+        tag: "{{ image_tag }}"
+        source: local
+
+    - name: Build and push
+      docker_image:
+        build:
+          path: ./app
+          pull: yes
+        name: "{{ docker_hub_username }}/{{ image_name }}"
+        tag: "{{ image_tag }}"
+        push: yes
+        source: build
