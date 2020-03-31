@@ -3,7 +3,7 @@
   gather_facts: False
 
   vars:
-    image_name: simple_flask_api
+    image_name: simple-flask-api
     image_tag: v0
 
   tasks:
