@@ -47,23 +47,24 @@ docker_hub_email: example@gmail.com
 - `ansible-playbook workers.yml -i hosts --vault-password-file vault.pass`
 - In the master node, make sure that the worker Nodes are Ready by `kubectl get nodes`.
 
-### Check the created cluster actually works.
-- `ssh ubuntu@master_ip`
-- `kubectl create deployment nginx --image=nginx`
-- Check if the nginx deployment is ready:
-   - `kubectl get deployments`
-- `kubectl expose deploy nginx --port 80 --target-port 80 --type NodePort`
-- Check if the NodePort service is ready
-   - `kubectl get services`
-- Test the service is running:
-   - `curl http://worker_ip:nginx_port`
-- Delete all
-   - `kubectl delete service nginx`
-   - `kubectl delete deployment nginx`
-
 ## Build and push a Docker image of our app
 
 - `ansible-playbook docker.yml --vault-password-file vault.pass`
+
+## Deployment
+- Initialize the deployment and the service (NodePort)
+   - `ansible-playbook deploy.yml -i hosts --vault-password-file vault.pass --tags create`
+- Check the created service
+   - `ansible-playbook deploy.yml -i hosts --vault-password-file vault.pass --tags describe-nodeport`
+   - `curl http://<worker_ip>:<node_port>`
+- Deploy a new version of docker image
+   1. edit `image_tag: <new_version_tag>` in `deploy.yml`
+   2. `ansible-playbook deploy.yml -i hosts --vault-password-file vault.pass --tags update`
+- Check the updated service
+   - `curl http://<worker_ip>:<node_port>`
+- Delete the deployment and the service
+   - `ansible-playbook deploy.yml -i hosts --vault-password-file vault.pass --tags delete`
+   
 
 ## References
 - [Provisioning EC2 instances](https://medium.com/datadriveninvestor/devops-using-ansible-to-provision-aws-ec2-instances-3d70a1cb155f)

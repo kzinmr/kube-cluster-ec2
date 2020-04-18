@@ -1,0 +1,35 @@
+- hosts: masters
+  gather_facts: False
+
+  vars:
+    image_tag: v20
+  tasks:
+    - name: create the deployment
+      shell: |
+        kubectl create deployment app-{{ image_tag }} --image=kzinmr/simple-flask-api:{{ image_tag }}
+        kubectl expose deploy app-{{ image_tag }} --name=app-service --port 80 --target-port 8080 --type NodePort
+        kubectl label service app-service version={{ image_tag }}
+      tags: ['never', 'create']
+
+    - name: deploy the new version
+      shell: |
+        export BlueVersion=$(kubectl get service app-service -o=jsonpath='{.metadata.labels.version}')
+        kubectl get deployment app-$BlueVersion -o=yaml | sed -e "s/$BlueVersion/{{ image_tag }}/g" | kubectl apply -f -
+        kubectl rollout status deployment/app-{{ image_tag }}
+        kubectl get service app-service -o=yaml | sed -e "s/$BlueVersion/{{ image_tag }}/g" | kubectl apply -f -
+        kubectl delete deployment app-$BlueVersion
+      tags: ['never', 'update']
+
+    - name: delete the deployment and service
+      shell: |
+        export BlueVersion=$(kubectl get service app-service -o=jsonpath='{.metadata.labels.version}')
+        kubectl delete deployment app-$BlueVersion
+        kubectl delete service app-service
+      tags: ['never', 'delete']
+
+    - name: Show version
+      block:
+      - shell: kubectl get service app-service -o=json | grep nodePort
+        register: data
+      - debug: msg="{{ data.stdout }}"
+      tags: ['never', 'describe-nodeport']
