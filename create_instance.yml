@@ -4,6 +4,7 @@
 
   vars:
     key_name: my_aws_key
+    key_path: "{{ lookup('env', 'HOME') }}/.ssh/{{ key_name }}.pub"
     region: us-west-2
     sec_group_master: kubernetes-master-node
     sec_group_worker: kubernetes-worker-node
@@ -29,8 +30,6 @@
         ec2_key:
           name: "{{ key_name }}"
           key_material: "{{ lookup('file', key_path ) }}"
-          vars:
-            key_path: "{{ lookup('env', 'HOME') }}/.ssh/{{ key_name }}.pub"
           region: "{{ region }}"
           aws_access_key: "{{ec2_access_key}}"
           aws_secret_key: "{{ec2_secret_key}}"
@@ -148,11 +147,11 @@
             "tag:Name": "{{ id_master }}"
         register: result
       - lineinfile:
-          path: {{ hosts_path }}
+          path: "{{ hosts_path }}"
           line: "[masters]"
           create: yes
       - lineinfile:
-          path: {{ hosts_path }}
+          path: "{{ hosts_path }}"
           line: "{{ item.tags.Name }} ansible_host={{ item.public_ip_address }} ansible_user=ubuntu"
         loop: "{{ result.instances }}"
 
@@ -162,16 +161,16 @@
             "tag:Name": "{{ id_worker }}"
         register: result
       - lineinfile:
-          path: {{ hosts_path }}
+          path: "{{ hosts_path }}"
           line: "[workers]"
       - lineinfile:
-          path: {{ hosts_path }}
+          path: "{{ hosts_path }}"
           line: "{{ item.tags.Name }}{{ index }} ansible_host={{ item.public_ip_address }} ansible_user=ubuntu"
         loop: "{{ result.instances|flatten(levels=1) }}"
         loop_control:
           index_var: index
       - blockinfile:
-          path: {{ hosts_path }}
+          path: "{{ hosts_path }}"
           block: |
             [all:vars]
             ansible_python_interpreter=/usr/bin/python3

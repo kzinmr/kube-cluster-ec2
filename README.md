@@ -7,6 +7,7 @@ Ansible playbooks that provision Kubernetes cluster on AWS EC2
 
 # SSH keygen for Kubernetes
 - `ssh-keygen -t rsa -b 4096 -f ~/.ssh/my_aws_key`
+- `ssh-add ~/.ssh/my_aws_key`
 
 ### Create a vault file to store credential information
 - `mkdir -p group_vars/all`
@@ -33,17 +34,17 @@ docker_hub_email: example@gmail.com
    - `ansible-playbook create_instance.yml --vault-password-file vault.pass --tags instance_info`
 
 ### Init Nodes
-- `ansible-playbook init.yml --vault-password-file vault.pass`
+- `ansible-playbook init.yml -i hosts --vault-password-file vault.pass`
 
 ### Install Dependencies (docker, kube*-tools)
-- `ansible-playbook kube-dependencies.yml --vault-password-file vault.pass`
+- `ansible-playbook kube-dependencies.yml -i hosts --vault-password-file vault.pass`
 
 ### Setup a Master Node
-- `ansible-playbook master.yml --vault-password-file vault.pass`
+- `ansible-playbook master.yml -i hosts --vault-password-file vault.pass`
 - In the master node, make sure that the Node is Ready by `kubectl get nodes`.
 
 ### Setup Worker Nodes
-- `ansible-playbook workers.yml --vault-password-file vault.pass`
+- `ansible-playbook workers.yml -i hosts --vault-password-file vault.pass`
 - In the master node, make sure that the worker Nodes are Ready by `kubectl get nodes`.
 
 ### Check the created cluster actually works.
