@@ -5,7 +5,7 @@ Ansible playbooks that provision Kubernetes cluster on AWS EC2
 ### Install Ansible and Docker
 - `./local_init.sh`
 
-# SSH keygen for Kubernetes
+### SSH keygen for Kubernetes
 - `ssh-keygen -t rsa -b 4096 -f ~/.ssh/my_aws_key`
 - `ssh-add ~/.ssh/my_aws_key`
 
